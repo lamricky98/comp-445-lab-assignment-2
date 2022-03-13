@@ -86,8 +86,8 @@ def get_request(conn, method_path_data, dir, v):
 
 def post_request(conn, method_path_data, decoded_data, dir, v):
     target_file = method_path_data.split()[1].split("/")[-1]
-    full_path = method_path_data.split()[1]
-    path = method_path_data.split()[1]
+    full_path = method_path_data.split()[1].strip("/")
+    folder_path = ""
     files = os.listdir(dir)
 
     rq = decoded_data.split('\r\n')
@@ -100,12 +100,16 @@ def post_request(conn, method_path_data, decoded_data, dir, v):
         response_msg = "400"
     else:
         if "/" in full_path:
-            while "/" in path and "." not in path:
-                path = path.split("/")[1]
-                files = os.listdir(path.split("/")[0])
+            split_path = full_path.split("/")
+            folder_path = ""
+            for i in range(len(split_path)):
+                if "." not in split_path[i]:
+                    folder_path = folder_path + split_path[i]
+            files = os.listdir(folder_path)
         if target_file in files:
             if v:
                 print('Overwriting file at ', full_path)
+                print()
             filer = open(dir + '/' + full_path, 'w+')
             filer.write(rq_data)
             filer.close()
