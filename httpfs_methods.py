@@ -46,22 +46,30 @@ def handle_client(conn, addr, dir, v):
 def get_request(conn, method_path_data, dir, v):
     response = ""
 
+    target_file = method_path_data.split()[1].split("/")[-1]
+    full_path = method_path_data.split()[1].strip("/")
+    folder_path = ""
     files = os.listdir(dir)
-    path = method_path_data.split()[1]
     content = ""
 
-    if "../" in path:
+    if "../" in full_path:
         content = "400"
-    elif path == '/':
+    elif full_path == '/' or full_path == "":
         for f in files:
             if f == "httpfs.py" or f == "httpfs_methods.py":
                 continue
             else:
                 content += f + '\n'
-    elif re.search(r'\/\w+.\w+', path):
-        path = path.strip('/')
-        if path in files:
-            filer = open(dir + '/' + path, 'r')
+    else:
+        if "/" in full_path:
+            split_path = full_path.split("/")
+            folder_path = ""
+            for i in range(len(split_path)):
+                if "." not in split_path[i]:
+                    folder_path = folder_path + split_path[i]
+            files = os.listdir(folder_path)
+        if target_file in files:
+            filer = open(dir + '/' + full_path, 'r')
             content = filer.read() + '\n'
             filer.close()
         else:
@@ -69,14 +77,17 @@ def get_request(conn, method_path_data, dir, v):
 
     if "404" in content:
         response = http_response(404, 0)
-        print("Returning an error message to the client:")
+        if v:
+            print("Returning an error message to the client:")
     elif "400" in content:
         response = http_response(400, 0)
-        print("Returning an error message to the client:")
+        if v:
+            print("Returning an error message to the client:")
     else:
         response = http_response(200, len(content))
         response += content
-        print("Returning the requested data to the client:")
+        if v:
+            print("Returning the requested data to the client:")
     conn.sendall(response.encode('utf-8'))
     if v:
         print(response)
@@ -127,14 +138,17 @@ def post_request(conn, method_path_data, decoded_data, dir, v):
 
     if "403" in response_msg:
         response = http_response(403, 0)
-        print("Returning an error message to the client:")
+        if v:
+            print("Returning an error message to the client:")
     elif "400" in response_msg:
         response = http_response(400, 0)
-        print("Returning an error message to the client:")
+        if v:
+            print("Returning an error message to the client:")
     else:
         response = http_response(200, len(response_msg))
         response += response_msg
-        print("Returning a response message to the client:")
+        if v:
+            print("Returning a response message to the client:")
     conn.sendall(response.encode('utf-8'))
     if v:
         print(response)
@@ -143,7 +157,7 @@ def post_request(conn, method_path_data, decoded_data, dir, v):
 
 
 def http_response(number, length):
-    now = time.strftime("%c")
+    current_time = time.strftime("%c")
 
     if number == 200:
         response = "HTTP/1.1 200 OK\r\n"
@@ -157,7 +171,7 @@ def http_response(number, length):
     elif number == 403:
         response = "HTTP/1.1 403 Forbidden\r\n"
 
-    response += "Date: " + now + "\r\n" \
+    response += "Date: " + current_time + "\r\n" \
                 + "Content-Type: text/html\r\n" \
                 + "Content-Length: " + str(length) + "\r\n" \
                 + "\r\n"
