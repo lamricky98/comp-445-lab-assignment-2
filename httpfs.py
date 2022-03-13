@@ -18,7 +18,7 @@ def run_client(v, p, d):
     else:
         port = int(p)
 
-    httpfs_methods.run_server('localhost', port, d, v)
+    httpfs_methods.run_server('', port, d, v)
 
 
 if __name__ == '__main__':
