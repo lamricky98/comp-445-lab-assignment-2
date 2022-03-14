@@ -2,7 +2,6 @@ import socket
 import threading
 import os
 import time
-import re
 
 def run_server(host, port, dir, v):
     if dir is None or dir == "":
@@ -76,15 +75,15 @@ def get_request(conn, method_path_data, dir, v):
             content = "404"
 
     if "404" in content:
-        response = http_response(404, 0)
+        response = generate_response(404, 0)
         if v:
             print("Returning an error message to the client:")
     elif "400" in content:
-        response = http_response(400, 0)
+        response = generate_response(400, 0)
         if v:
             print("Returning an error message to the client:")
     else:
-        response = http_response(200, len(content))
+        response = generate_response(200, len(content))
         response += content
         if v:
             print("Returning the requested data to the client:")
@@ -137,15 +136,15 @@ def post_request(conn, method_path_data, decoded_data, dir, v):
             response_msg = "403"
 
     if "403" in response_msg:
-        response = http_response(403, 0)
+        response = generate_response(403, 0)
         if v:
             print("Returning an error message to the client:")
     elif "400" in response_msg:
-        response = http_response(400, 0)
+        response = generate_response(400, 0)
         if v:
             print("Returning an error message to the client:")
     else:
-        response = http_response(200, len(response_msg))
+        response = generate_response(200, len(response_msg))
         response += response_msg
         if v:
             print("Returning a response message to the client:")
@@ -156,19 +155,19 @@ def post_request(conn, method_path_data, decoded_data, dir, v):
     print()
 
 
-def http_response(number, length):
+def generate_response(code, length):
     current_time = time.strftime("%c")
 
-    if number == 200:
+    if code == 200:
         response = "HTTP/1.1 200 OK\r\n"
 
-    elif number == 404:
+    elif code == 404:
         response = "HTTP/1.1 404 Not Found\r\n"
 
-    elif number == 400:
+    elif code == 400:
         response = "HTTP/1.1 400 Bad Request\r\n"
 
-    elif number == 403:
+    elif code == 403:
         response = "HTTP/1.1 403 Forbidden\r\n"
 
     response += "Date: " + current_time + "\r\n" \
